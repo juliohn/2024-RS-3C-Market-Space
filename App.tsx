@@ -1,20 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "react-native";
+
+import { GluestackUIProvider, Text, Center } from "@gluestack-ui/themed";
+
+import { config } from "./config/gluestack-ui.config";
+
+import {
+  useFonts,
+  Karla_400Regular,
+  Karla_700Bold,
+} from "@expo-google-fonts/karla";
+import { Loading } from "@components/Loading";
+
+import { Signin } from "@screens/Signin";
+
+import { Signup } from "@screens/Signup";
 
 export default function App() {
+  const [foantsLoaded] = useFonts({ Karla_400Regular, Karla_700Bold });
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <GluestackUIProvider config={config}>
+      <StatusBar
+        barStyle={"light-content"}
+        backgroundColor={"transparent"}
+        translucent
+      />
+      {foantsLoaded ? <Signup /> : <Loading />}
+    </GluestackUIProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
