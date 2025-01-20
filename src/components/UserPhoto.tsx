@@ -1,14 +1,16 @@
-import { VStack, Text, Image } from "@gluestack-ui/themed";
+import { Image } from "@gluestack-ui/themed";
 import { ComponentProps } from "react";
 
-type UserPhotoProps = ComponentProps<typeof Image>;
+type UserPhotoProps = ComponentProps<typeof Image> & {
+  type?: "PRIMARY" | "SECONDARY";
+};
 
-export function UserPhoto({ ...rest }: UserPhotoProps) {
+export function UserPhoto({ type = "PRIMARY", ...rest }: UserPhotoProps) {
   return (
     <Image
       rounded="$full"
-      borderWidth={4}
-      borderColor="$bluelight"
+      borderWidth={type === "PRIMARY" ? 4 : 1}
+      borderColor={type === "PRIMARY" ? "$bluelight" : "$white"}
       backgroundColor="$gray3"
       {...rest}
     />

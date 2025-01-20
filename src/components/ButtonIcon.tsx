@@ -3,21 +3,30 @@ import {
   Button as GluestakButton,
   Text,
   ButtonSpinner,
+  Icon,
+  HStack,
 } from "@gluestack-ui/themed";
+
+import { icons } from "lucide-react-native";
 
 type ButtonProps = ComponentProps<typeof GluestakButton> & {
   title: string;
   variantButton?: "PRIMARY" | "SECONDARY" | "TERTIARY";
   isLoading?: boolean;
-  iconLeft?: ReactNode | null;
+  iconName: keyof typeof icons;
+  iconColor?: string;
 };
-export function Button({
+
+export function ButtonIcon({
   title,
   variantButton = "PRIMARY",
   isLoading = false,
-  iconLeft,
+  iconName,
+  iconColor,
   ...rest
 }: ButtonProps) {
+  const LucideIcon = icons[iconName];
+
   return (
     <GluestakButton
       w="$full"
@@ -47,19 +56,22 @@ export function Button({
       {isLoading ? (
         <ButtonSpinner />
       ) : (
-        <Text
-          color={
-            variantButton === "PRIMARY"
-              ? "$gray700"
-              : variantButton === "SECONDARY"
-              ? "$gray200"
-              : "$gray700"
-          }
-          fontFamily="$heading"
-          fontSize={"$md"}
-        >
-          {title}
-        </Text>
+        <HStack gap={"$2"}>
+          <Icon as={LucideIcon} color={iconColor} />
+          <Text
+            color={
+              variantButton === "PRIMARY"
+                ? "$gray700"
+                : variantButton === "SECONDARY"
+                ? "$gray200"
+                : "$gray700"
+            }
+            fontFamily="$heading"
+            fontSize={"$md"}
+          >
+            {title}
+          </Text>
+        </HStack>
       )}
     </GluestakButton>
   );

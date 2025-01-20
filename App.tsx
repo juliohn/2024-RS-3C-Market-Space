@@ -1,6 +1,6 @@
 import { StatusBar } from "react-native";
 
-import { GluestackUIProvider, Text, Center } from "@gluestack-ui/themed";
+import { GluestackUIProvider } from "@gluestack-ui/themed";
 
 import { config } from "./config/gluestack-ui.config";
 
@@ -11,20 +11,22 @@ import {
 } from "@expo-google-fonts/karla";
 import { Loading } from "@components/Loading";
 
-import { Signin } from "@screens/Signin";
-
-import { Signup } from "@screens/Signup";
+import { Routes } from "@routes/index";
+import { Provider } from "react-redux";
+import { store } from "@store/index";
 
 export default function App() {
   const [foantsLoaded] = useFonts({ Karla_400Regular, Karla_700Bold });
   return (
-    <GluestackUIProvider config={config}>
-      <StatusBar
-        barStyle={"light-content"}
-        backgroundColor={"transparent"}
-        translucent
-      />
-      {foantsLoaded ? <Signup /> : <Loading />}
-    </GluestackUIProvider>
+    <Provider store={store}>
+      <GluestackUIProvider config={config}>
+        <StatusBar
+          barStyle={"light-content"}
+          backgroundColor={"transparent"}
+          translucent
+        />
+        {foantsLoaded ? <Routes /> : <Loading />}
+      </GluestackUIProvider>
+    </Provider>
   );
 }
