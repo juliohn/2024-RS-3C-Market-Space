@@ -21,8 +21,9 @@ import { CardProductsProps } from "@components/CardProduct";
 
 // Config
 import { gluestackUIConfig } from "../../config/gluestack-ui.config";
+import { AdDTO } from "@dtos/Ad";
 
-type StackRoutesProps = {
+export type HomeStackParamList = {
   home: undefined;
   productDetails: {
     params: {
@@ -30,11 +31,13 @@ type StackRoutesProps = {
     };
   };
   adsNew: undefined;
-  adsPreview: undefined;
+  adsPreview: {
+    item: AdDTO;
+  };
 };
 
 export type HomeStackNavigatorProps =
-  NativeStackNavigationProp<StackRoutesProps>;
+  NativeStackNavigationProp<HomeStackParamList>;
 
 const { Navigator, Screen } = createNativeStackNavigator();
 

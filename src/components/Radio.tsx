@@ -3,21 +3,26 @@ import {
   RadioIndicator,
   RadioLabel,
   RadioIcon,
+  CircleIcon,
 } from "@gluestack-ui/themed";
-import { Circle } from "lucide-react-native";
 
 interface RadioProps {
   label: string;
   value: string;
+  isSelected: boolean;
 }
 
-export function Radio({ label, value, ...rest }: RadioProps) {
+export function Radio({ label, value, isSelected, ...rest }: RadioProps) {
   return (
     <GlueRadio value={value} {...rest}>
       <RadioIndicator>
-        <RadioIcon as={Circle} size="sm" />
+        <RadioIcon
+          as={CircleIcon}
+          size="sm"
+          color={isSelected ? "$primary500" : "transparent"}
+        />
       </RadioIndicator>
-      <RadioLabel> {label}</RadioLabel>
+      <RadioLabel ml="$2">{label}</RadioLabel>
     </GlueRadio>
   );
 }

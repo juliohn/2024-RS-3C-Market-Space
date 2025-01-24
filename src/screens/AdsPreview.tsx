@@ -6,26 +6,98 @@ import {
   ScrollView,
   Center,
   SafeAreaView,
+  Box,
+  useToken,
 } from "@gluestack-ui/themed";
 import { Dimensions } from "react-native";
+import { useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
 import { UserPhoto } from "@components/UserPhoto";
 
-import { CheckBox } from "@components/CheckBox";
-
-// - remove beucase it is temporary
-import shirt from "@assets/png/1.png";
-import shoes from "@assets/png/2.png";
-import bike from "@assets/png/3.png";
 import { ButtonIcon } from "@components/ButtonIcon";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { AdDTO } from "@dtos/Ad";
+import { useAppSelector } from "@hooks/index";
+import { formatPrice } from "@utils/format";
+import { usePaymentMethods } from "@hooks/usePaymentMethods";
+
+import { Alert } from "react-native";
+import { api } from "@services/api";
+
+// Add AdDTO type
+type RouteParams = {
+  item: AdDTO;
+};
 
 export function AdsPreview() {
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const route = useRoute();
+  const { item } = route.params as RouteParams;
+  const { paymentMethods } = usePaymentMethods(); // Destructure to get paymentMethods array
+
   const width = Dimensions.get("window").width;
 
-  // Mock data - replace with actual data from form
-  const pictures = [shirt, shoes, bike];
+  const user = useAppSelector((state) => state.auth.user);
+
+  const gray100 = useToken("colors", "gray100");
+
+  // Replace mock data with item
+  const pictures = item.images;
+
+  async function handlePublishAd() {
+    try {
+      setIsLoading(true);
+
+      // First API call - Create product
+      const productResponse = await api.post("/products", {
+        name: item.name,
+        description: item.description,
+        is_new: item.is_new,
+        price: item.price,
+        accept_trade: item.accept_trade,
+        payment_methods: item.payment_methods,
+      });
+
+      const { id: productId } = productResponse.data;
+
+      // Second API call - Upload images
+      const formData = new FormData();
+      formData.append("product_id", productId);
+
+      item.images?.forEach((imageUri, index) => {
+        formData.append("images", {
+          uri: imageUri,
+          type: "image/jpeg",
+          name: `image_${index}.jpg`,
+        } as any);
+      });
+
+      await api.post("/products/images", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      Alert.alert("Sucesso", "Anúncio cadastrado com sucesso!", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("home"),
+        },
+      ]);
+    } catch (error: any) {
+      if (error.response?.status === 400 || error.response?.status === 401) {
+        Alert.alert("Erro", error.response.data.message);
+      } else {
+        Alert.alert(
+          "Erro",
+          "Não foi possível publicar o anúncio. Tente novamente mais tarde."
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <SafeAreaView flex={1}>
@@ -49,13 +121,13 @@ export function AdsPreview() {
               height={200}
               autoPlay={true}
               mode="parallax"
-              data={pictures}
+              data={pictures || []}
               scrollAnimationDuration={1500}
               renderItem={({ item }) => (
                 <Image
                   alt="Product image"
                   rounded="$lg"
-                  source={item}
+                  source={{ uri: item }}
                   w="$full"
                   h="$full"
                 />
@@ -70,47 +142,46 @@ export function AdsPreview() {
                 h={35}
                 w={35}
                 alt="User photo"
-                source={{ uri: "https://github.com/juliohn.png" }}
+                source={{
+                  uri: `http://localhost:3333/images/${user?.avatar}`,
+                }}
               />
               <Text color="$gray100" fontFamily="$body" fontSize="$md">
-                Julio Helena
+                {user?.name}
               </Text>
             </HStack>
 
             {/* Product Status */}
-            <HStack>
+            <Box bg="$gray500" rounded="$md" alignSelf="flex-start">
               <Text
                 px="$2"
                 py="$1"
-                bg="$gray500"
-                rounded="$full"
                 color="$gray200"
                 fontSize="$xs"
                 textTransform="uppercase"
               >
-                USADO
+                {item.is_new ? "NOVO" : "USADO"}
               </Text>
-            </HStack>
+            </Box>
 
             {/* Product Info */}
             <HStack justifyContent="space-between" alignItems="center">
               <Text color="$gray100" fontSize="$xl" fontFamily="$heading">
-                Luminária pendente
+                {item.name}
               </Text>
               <HStack alignItems="baseline" space="xs">
                 <Text color="$blue500" fontSize="$sm" fontFamily="$heading">
                   R$
                 </Text>
                 <Text color="$blue500" fontSize="$2xl" fontFamily="$heading">
-                  45,00
+                  {formatPrice(item.price)}
                 </Text>
               </HStack>
             </HStack>
 
             {/* Description */}
             <Text color="$gray200" fontSize="$sm" fontFamily="$body">
-              Cras congue cursus in tortor sagittis placerat nunc, tellus arcu.
-              Vitae ante leo eget maecenas urna mattis cursus.
+              {item.description}
             </Text>
 
             {/* Trade Option */}
@@ -119,7 +190,7 @@ export function AdsPreview() {
                 Aceita troca?
               </Text>
               <Text color="$gray200" fontSize="$sm" fontFamily="$body">
-                Não
+                {item.accept_trade ? "Sim" : "Não"}
               </Text>
             </HStack>
 
@@ -128,13 +199,26 @@ export function AdsPreview() {
               <Text color="$gray200" fontSize="$sm" fontFamily="$heading">
                 Meios de pagamento:
               </Text>
-              <CheckBox label="Boleto" value="boleto" isChecked={true} />
-              <CheckBox label="Pix" value="pix" isChecked={true} />
-              <CheckBox
-                label="Depósito Bancário"
-                value="deposit"
-                isChecked={true}
-              />
+              {item.payment_methods.map((method) => {
+                const paymentMethod = paymentMethods.find(
+                  (pm) => pm.value === method
+                );
+                const Icon = paymentMethod?.icon;
+
+                return (
+                  <HStack key={method} alignItems="center">
+                    {Icon && <Icon size={18} color={gray100} />}
+                    <Text
+                      ml="$2"
+                      color="$gray200"
+                      fontSize="$sm"
+                      fontFamily="$body"
+                    >
+                      {paymentMethod?.label || method}
+                    </Text>
+                  </HStack>
+                );
+              })}
             </VStack>
           </VStack>
         </ScrollView>
@@ -157,9 +241,7 @@ export function AdsPreview() {
             flex={1}
             variantButton="TERTIARY"
             title="Publicar"
-            onPress={() => {
-              console.log("Publicar");
-            }}
+            onPress={handlePublishAd}
           />
         </HStack>
       </VStack>

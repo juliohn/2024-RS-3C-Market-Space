@@ -24,7 +24,7 @@ import { TouchableOpacity } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "react-native";
-import { api } from "@services/axios";
+import { api } from "@services/api";
 
 type FormData = {
   avatar: string;

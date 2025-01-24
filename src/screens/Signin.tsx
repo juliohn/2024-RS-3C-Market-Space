@@ -14,7 +14,7 @@ import {
 import { Input } from "@components/Input";
 import { Button } from "@components/Button";
 
-import { api } from "@services/axios";
+import { api, setAuthToken } from "@services/api";
 import { useAppDispatch } from "@hooks/index";
 import { signIn } from "@slices/authSlice";
 
@@ -43,7 +43,9 @@ type AuthResponse = {
 export function Signin() {
   const navigator = useNavigation<AuthNavigatorRoutesProps>();
   const route = useRoute();
-  const { email } = (route.params as RouteParams) || {};
+  const params = route.params as RouteParams;
+  const emailParam = params?.email;
+
   const dispatch = useAppDispatch();
 
   const {
@@ -52,7 +54,7 @@ export function Signin() {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      email: email || "",
+      email: emailParam || "",
       password: "",
     },
   });
@@ -72,6 +74,7 @@ export function Signin() {
       });
 
       const { token, user, refresh_token } = response.data;
+      setAuthToken(token);
       dispatch(signIn({ user, token, refresh_token }));
     } catch (error: any) {
       if (error.response) {

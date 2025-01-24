@@ -6,17 +6,36 @@ import { TouchableOpacity } from "react-native";
 
 type InputProps = Omit<ComponentProps<typeof InputField>, "type"> & {
   mask?: string;
+  maskType?: any;
+  maskOptions?: any;
   isPassword?: boolean;
   isInvalid?: boolean;
 };
 
 export function Input({
   mask,
+  maskType = "cel-phone",
+  maskOptions,
   isPassword = false,
   isInvalid,
   ...rest
 }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
+
+  const defaultOptions = {
+    "cel-phone": {
+      maskType: "BRL",
+      withDDD: true,
+      dddMask: "+55 (99) ",
+    },
+  };
+
+  const getOptions = () => {
+    if (maskOptions) return { ...maskOptions, mask };
+    if (maskType === "cel-phone")
+      return { ...defaultOptions["cel-phone"], mask };
+    return { mask };
+  };
 
   const togglePassword = () => {
     setShowPassword(!showPassword);
@@ -27,7 +46,6 @@ export function Input({
       bg="$gray700"
       borderRadius={"$md"}
       h="$12"
-      px={"$1"}
       w={"$full"}
       borderWidth={isInvalid ? "$1" : "$0"}
       borderColor={isInvalid ? "$red500" : "transparent"}
@@ -39,12 +57,10 @@ export function Input({
     >
       {mask ? (
         <TextInputMask
-          type="cel-phone"
-          options={{
-            maskType: "BRL",
-            withDDD: true,
-            dddMask: "+55 (99) ",
-          }}
+          minHeight="$12"
+          width={"$full"}
+          type={maskType}
+          options={getOptions()}
           customTextInput={InputField}
           customTextInputProps={{
             placeholderTextColor: "$gray400",
@@ -57,6 +73,8 @@ export function Input({
         />
       ) : (
         <InputField
+          minHeight="$12"
+          width={"$full"}
           placeholderTextColor={"$gray400"}
           fontFamily="$body"
           color="$gray200"

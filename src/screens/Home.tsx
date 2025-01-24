@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+
+import { useState, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { useSelector } from "react-redux";
+import { RootState } from "@store/index"; // Adjust this import based on your Redux store setup
 
 import { HomeStackNavigatorProps } from "@routes/app.routes";
 
@@ -28,9 +32,27 @@ import shoes from "@assets/png/2.png";
 import bike from "@assets/png/3.png";
 
 import { TouchableOpacity } from "react-native";
+import { api } from "@services/api";
 
 export function Home() {
   const navigation = useNavigation<HomeStackNavigatorProps>();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [activeAdsCount, setActiveAdsCount] = useState<number>(0);
+
+  async function fetchUserActiveAds() {
+    try {
+      const response = await api.get("/users/products");
+      setActiveAdsCount(response.data.length);
+    } catch (error) {
+      console.error("Error fetching active ads count:", error);
+    }
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserActiveAds();
+    }, [])
+  );
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const data = [
@@ -338,6 +360,62 @@ export function Home() {
         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
       owner_user_id: 11,
     },
+    {
+      title: "Gaveteiro",
+      variantTag: "SECONDARY",
+      titleTag: "Usado",
+      price: "59,90",
+      imageUri: shirt,
+      userPhoto: "https://github.com/juliohn.png",
+      pictures: [shirt, shoes, bike],
+      changeAllowed: true,
+      addActive: true,
+      description:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+      owner_user_id: 11,
+    },
+    {
+      title: "Sofá",
+      variantTag: "TERTIARY",
+      titleTag: "Novo",
+      price: "1200,90",
+      imageUri: shirt,
+      userPhoto: "https://github.com/juliohn.png",
+      pictures: [shirt, shoes, bike],
+      changeAllowed: true,
+      addActive: true,
+      description:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+      owner_user_id: 11,
+    },
+    {
+      title: "Gaveteiro",
+      variantTag: "SECONDARY",
+      titleTag: "Usado",
+      price: "59,90",
+      imageUri: shirt,
+      userPhoto: "https://github.com/juliohn.png",
+      pictures: [shirt, shoes, bike],
+      changeAllowed: true,
+      addActive: true,
+      description:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+      owner_user_id: 11,
+    },
+    {
+      title: "Sofá",
+      variantTag: "TERTIARY",
+      titleTag: "Usado",
+      price: "1200,90",
+      imageUri: shirt,
+      userPhoto: "https://github.com/juliohn.png",
+      pictures: [shirt, shoes, bike],
+      changeAllowed: true,
+      addActive: true,
+      description:
+        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+      owner_user_id: 11,
+    },
   ];
 
   function handleNewAd() {
@@ -345,8 +423,7 @@ export function Home() {
   }
 
   function handleMyAds() {
-    // navigation.navigate("listMyAds");
-    navigation.navigate("home", { screen: "listMyAds" });
+    navigation.navigate("listMyAds");
   }
 
   function renderItem({ item }: CardProductsProps) {
@@ -369,7 +446,11 @@ export function Home() {
             alt="Photo of User"
             h={50}
             w={50}
-            source={"https://github.com/juliohn.png"}
+            source={{
+              uri:
+                `http://localhost:3333/images/${user?.avatar}` ||
+                "https://github.com/juliohn.png",
+            }}
           />
           <VStack justifyContent="center">
             <Text color="$gray100" fontSize={"$md"} fontFamily="$body">
@@ -377,7 +458,7 @@ export function Home() {
             </Text>
 
             <Text color="$gray100" fontFamily="$heading" fontSize={"$md"}>
-              Julio!
+              {user?.name || "Usuário"}!
             </Text>
           </VStack>
         </HStack>
@@ -411,7 +492,7 @@ export function Home() {
           <Icon as={Tag} size="xl" color="$blue" />
           <VStack>
             <Text fontFamily="$heading" fontSize={"$lg"}>
-              4
+              {activeAdsCount}
             </Text>
             <Text fontFamily="$body" fontSize={"$xs"}>
               anúncios ativos

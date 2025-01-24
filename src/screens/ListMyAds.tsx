@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { CardAds } from "@components/CardAds";
 
 import { ComboBox, OptionProps } from "@components/ComboBox";
@@ -17,7 +15,7 @@ import shirt from "@assets/png/4.png";
 import shoes from "@assets/png/5.png";
 import bike from "@assets/png/6.png";
 
-import { ListRenderItemInfo, TouchableOpacity } from "react-native";
+import { ListRenderItemInfo } from "react-native";
 
 import { CardAdsProps } from "@components/CardAds";
 
